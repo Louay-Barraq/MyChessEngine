@@ -294,8 +294,8 @@ class Move:
         self.movedPiece = board[self.startingRow][self.startingColumn]
         self.capturedPiece = board[self.endingRow][self.endingColumn]
         # Attributes related to pawns
-        self.isPawnPromotion = (self.movedPiece == 'wp' and self.endingRow == 0) or (self.movedPiece == 'bp' and self.endingRow == 7)
-        self.isEnPassantMove = (self.movedPiece[1] == 'p')
+        # self.isPawnPromotion = (self.movedPiece == 'wp' and self.endingRow == 0) or (self.movedPiece == 'bp' and self.endingRow == 7)
+        # self.isEnPassantMove = (self.movedPiece[1] == 'p')
         # Generating a unique ID for the move using a hashing function
         self.moveID = (self.startingRow * 1000) + (self.startingColumn * 100) + (self.endingRow * 10) + self.endingColumn
 
@@ -309,8 +309,10 @@ class Move:
     def __str__(self):
         return f"Move : from {self.getRankFile(self.startingRow, self.startingColumn)} to {self.getRankFile(self.endingRow, self.endingColumn)}"
 
+
     def getRankFile(self, row, col):
         return self.colsToFiles[col] + self.rowsToRanks[row]
+
 
     def getChessNotation(self):
         # Handling the pawn's moves
