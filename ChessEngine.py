@@ -55,8 +55,8 @@ class GameState:
         moves = self.getAllPossibleMoves()
 
         for i in range(len(moves) - 1, -1, -1):
-            self.makeMove(moves[i])  # Fix: Use moves[i] instead of allMoves[i]
-            # Switching Turns and checking if any of the moves makes the king vulnerable
+            self.makeMove(moves[i])
+            # makeMove switches turns, so we have to switch them back to see if that move made the king vulnerable
             self.whiteToMove = not self.whiteToMove
             if self.isInCheck():
                 moves.remove(moves[i])
