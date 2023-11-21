@@ -20,15 +20,20 @@ class GameState:
         self.stalemate = False
 
 
-    def makeMove(self, move):
-        # Making changes on the board
-        self.board[move.startingRow][move.startingColumn] = "--"
-        self.board[move.endingRow][move.endingColumn] = move.movedPiece
-        # Making changes to the king's location if it is the moved piece
-        if move.movedPiece == "wK":
-            self.whiteKingLocation = (move.endingRow, move.endingColumn)
-        elif move.movedPiece == "bK":
-            self.blackKingLocation = (move.endingRow, move.endingColumn)
+    def makeMove(self, move, isPawnPromotion = False, toPromoteToPiece = ''):
+        if isPawnPromotion:
+            self.board[move.startingRow][move.startingColumn] = "--"
+            self.board[move.endingRow][move.endingColumn] = toPromoteToPiece
+        else:
+            # Making changes on the board
+            self.board[move.startingRow][move.startingColumn] = "--"
+            self.board[move.endingRow][move.endingColumn] = move.movedPiece
+            # Making changes to the king's location if it is the moved piece
+            if move.movedPiece == "wK":
+                self.whiteKingLocation = (move.endingRow, move.endingColumn)
+            elif move.movedPiece == "bK":
+                self.blackKingLocation = (move.endingRow, move.endingColumn)
+
         # Logging the move
         self.moveLog.append(move)
         # Swapping between players
@@ -38,14 +43,19 @@ class GameState:
     def undoMove(self):
         if len(self.moveLog) != 0:
             move = self.moveLog.pop()
-            # Reverting back pieces
-            self.board[move.startingRow][move.startingColumn] = move.movedPiece
-            self.board[move.endingRow][move.endingColumn] = move.capturedPiece
-            # Pass
-            if move.movedPiece == "wK":
-                self.whiteKingLocation = (move.startingRow, move.startingColumn)
-            elif move.movedPiece == "bK":
-                self.blackKingLocation = (move.startingRow, move.startingColumn)
+            if move.isPawnPromotion:
+                self.board[move.startingRow][move.startingColumn] = move.movedPiece
+                self.board[move.endingRow][move.endingColumn] = move.capturedPiece
+            else:
+                # Reverting back pieces
+                self.board[move.startingRow][move.startingColumn] = move.movedPiece
+                self.board[move.endingRow][move.endingColumn] = move.capturedPiece
+                # Pass
+                if move.movedPiece == "wK":
+                    self.whiteKingLocation = (move.startingRow, move.startingColumn)
+                elif move.movedPiece == "bK":
+                    self.blackKingLocation = (move.startingRow, move.startingColumn)
+
             # Swapping back turns
             self.whiteToMove = not self.whiteToMove
 
@@ -294,7 +304,7 @@ class Move:
         self.movedPiece = board[self.startingRow][self.startingColumn]
         self.capturedPiece = board[self.endingRow][self.endingColumn]
         # Attributes related to pawns
-        # self.isPawnPromotion = (self.movedPiece == 'wp' and self.endingRow == 0) or (self.movedPiece == 'bp' and self.endingRow == 7)
+        self.isPawnPromotion = (self.movedPiece == 'wp' and self.endingRow == 0) or (self.movedPiece == 'bp' and self.endingRow == 7)
         # self.isEnPassantMove = (self.movedPiece[1] == 'p')
         # Generating a unique ID for the move using a hashing function
         self.moveID = (self.startingRow * 1000) + (self.startingColumn * 100) + (self.endingRow * 10) + self.endingColumn
