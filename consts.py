@@ -5,7 +5,7 @@ BOARD_HEIGHT = 656
 BOARD_WIDTH = 656
 
 # The right part characteristics
-MOVE_LOG_DISPLAY_WIDTH = 220
+MOVE_LOG_DISPLAY_WIDTH = 240
 
 # The left part characteristics
 LEFT_MENU_WIDTH = 164 # A square is (82, 82) so the width of two squares will be 2 * 82 = 164
@@ -22,6 +22,9 @@ TEAL_COLOR = (14, 174, 107)
 BLACK_COLOR = (0, 0, 0)
 WHITE_COLOR = (255, 255, 255)
 FOREST_GREEN_COLOR = (5, 122, 74)
+RED_COLOR = (255, 0, 0)
+TURQUOISE_COLOR = (0, 204, 255)
+DARK_WASHED_RED_COLOR = (255, 51, 51)
 
 # Others
 BORDER_WIDTH = 16
