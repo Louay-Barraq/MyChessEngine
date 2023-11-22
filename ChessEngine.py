@@ -316,8 +316,12 @@ class Move:
         return False
 
 
-    def __str__(self):
+    def __repr__(self):
         return f"Move : from {self.getRankFile(self.startingRow, self.startingColumn)} to {self.getRankFile(self.endingRow, self.endingColumn)}"
+
+
+    def __str__(self):
+        return f"{self.getRankFile(self.startingRow, self.startingColumn)} {self.getRankFile(self.endingRow, self.endingColumn)}"
 
 
     def getRankFile(self, row, col):
