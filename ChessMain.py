@@ -31,6 +31,7 @@ def drawPieces(screen, board):
 
 # Drawing the left menu and the right move log menu
 def drawLeftMenu(screen, pawnPromotionHappening = False, promotingPlayer = ''):
+    # Treating the cases where a pawn promotion move is being made
     if not pawnPromotionHappening:
         leftMenuDimensions = (0, 0, LEFT_MENU_WIDTH, BOARD_HEIGHT)
     else:
@@ -39,8 +40,10 @@ def drawLeftMenu(screen, pawnPromotionHappening = False, promotingPlayer = ''):
         else:
             leftMenuDimensions = (0, (2 * SQUARE_SIZE), LEFT_MENU_WIDTH, BOARD_HEIGHT)
 
+    # Drawing the Menu
     pg.draw.rect(screen, pg.Color(TEAL_COLOR), leftMenuDimensions)
 
+    # Drawing the black borders
     upperBorderDimensions = (0, (2 * SQUARE_SIZE), LEFT_MENU_WIDTH, BORDER_WIDTH)
     pg.draw.rect(screen, pg.Color(BLACK_COLOR), upperBorderDimensions)
     lowerBorderDimensions = (0, BOARD_HEIGHT - ((2 * SQUARE_SIZE) + BORDER_WIDTH), LEFT_MENU_WIDTH, BORDER_WIDTH)
@@ -48,7 +51,7 @@ def drawLeftMenu(screen, pawnPromotionHappening = False, promotingPlayer = ''):
 
 
 def drawRightMenu(screen):
-    # Moves Log Text
+    # Drawing the moves log title text
     x, y = BOARD_WIDTH + FULL_LEFT_PART_WIDTH, 0
     width, height = MOVE_LOG_DISPLAY_WIDTH, SQUARE_SIZE
     pg.draw.rect(screen, pg.Color(TEAL_COLOR), pg.Rect(BOARD_WIDTH + FULL_LEFT_PART_WIDTH, 0, MOVE_LOG_DISPLAY_WIDTH, SQUARE_SIZE))
@@ -59,20 +62,48 @@ def drawRightMenu(screen):
 
 
 # Draw the options if the player made a pawn promotion move
-def drawPawnPromotionOptions(screen, color):
+def drawPawnPromotionOptions(screen, thereIsPawnPromotion = False, pawnPromotionColor = ''):
     # Initializing values
     idx = 0
-    pieces = [color + piece for piece in ['Q', 'R', 'N', 'B']]
-    heightOffset = BOARD_HEIGHT - (2 * SQUARE_SIZE) if color == 'w' else 0
+    pieces = [color + piece for color in ['w', 'b'] for piece in ['Q', 'R', 'N', 'B']]
     colors = [pg.Color(FOREST_GREEN_COLOR), pg.Color(TEAL_COLOR)]
 
-    for r in range(2):
-        for c in range(2):
+    # Adding a bigger loop to print blit the images of both players
+    positions = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    for repetition in range(2):
+        for r, c in positions:
+            heightOffset = BOARD_HEIGHT - (2 * SQUARE_SIZE) if pieces[idx][0] == 'w' else 0
             pieceRect = pg.Rect(c * SQUARE_SIZE, (r * SQUARE_SIZE) + heightOffset, SQUARE_SIZE, SQUARE_SIZE)
             pg.draw.rect(screen, colors[(r + c) % 2], pieceRect)
             screen.blit(IMAGES[pieces[idx]], pieceRect)
             idx += 1
-    # print("inside drawPawn...Options")
+
+    # Highlighting the pieces in case there is not any pawn promotion
+    if not thereIsPawnPromotion:
+        surface = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
+        # Defining the opacity of the highlighting
+        surface.set_alpha(MEDIUM_HIGHLIGHTING)
+        surface.fill(pg.Color(YELLOW_COLOR))
+
+        idx = 0
+        for repetitions in range(2):
+            for r, c in positions:
+                heightOffset = BOARD_HEIGHT - (2 * SQUARE_SIZE) if pieces[idx][0] == 'w' else 0
+                screen.blit(surface, (c * SQUARE_SIZE, (r * SQUARE_SIZE) + heightOffset, SQUARE_SIZE, SQUARE_SIZE))
+                idx += 1
+
+    else:
+        surface = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
+        # Defining the opacity of the highlighting
+        surface.set_alpha(MEDIUM_HIGHLIGHTING)
+        surface.fill(pg.Color(YELLOW_COLOR))
+
+        idx = 0
+        toBeHighlightedPieces = [piece for piece in pieces if piece[0] != pawnPromotionColor]
+        for r, c in positions:
+            heightOffset = BOARD_HEIGHT - (2 * SQUARE_SIZE) if toBeHighlightedPieces[idx][0] == 'w' else 0
+            screen.blit(surface, (c * SQUARE_SIZE, (r * SQUARE_SIZE) + heightOffset, SQUARE_SIZE, SQUARE_SIZE))
+            idx += 1
 
 
 def getPawnPromotionOption(screen, color):
