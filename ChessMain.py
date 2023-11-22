@@ -19,7 +19,6 @@ def drawBoard(screen):
             pg.draw.rect(screen, color, pg.Rect(((c * SQUARE_SIZE) + FULL_LEFT_PART_WIDTH), (r * SQUARE_SIZE), SQUARE_SIZE, SQUARE_SIZE))
 
 
-
 # Drawing the pieces on the board.
 def drawPieces(screen, board):
     for r in range(DIMENSION):
@@ -31,15 +30,22 @@ def drawPieces(screen, board):
 
 
 # Drawing the left menu and the right move log menu
-def drawLeftMenu(screen):
-    # Pawn Promotion Menu
-    leftMenuDimensions = (0, 0, LEFT_MENU_WIDTH, BOARD_HEIGHT)
+def drawLeftMenu(screen, pawnPromotionHappening = False, promotingPlayer = ''):
+    if not pawnPromotionHappening:
+        leftMenuDimensions = (0, 0, LEFT_MENU_WIDTH, BOARD_HEIGHT)
+    else:
+        if promotingPlayer == 'w':
+            leftMenuDimensions = (0, 0, LEFT_MENU_WIDTH, BOARD_HEIGHT - (2 * SQUARE_SIZE))
+        else:
+            leftMenuDimensions = (0, (2 * SQUARE_SIZE), LEFT_MENU_WIDTH, BOARD_HEIGHT)
+
     pg.draw.rect(screen, pg.Color(TEAL_COLOR), leftMenuDimensions)
 
     upperBorderDimensions = (0, (2 * SQUARE_SIZE), LEFT_MENU_WIDTH, BORDER_WIDTH)
     pg.draw.rect(screen, pg.Color(BLACK_COLOR), upperBorderDimensions)
     lowerBorderDimensions = (0, BOARD_HEIGHT - ((2 * SQUARE_SIZE) + BORDER_WIDTH), LEFT_MENU_WIDTH, BORDER_WIDTH)
     pg.draw.rect(screen, pg.Color(BLACK_COLOR), lowerBorderDimensions)
+
 
 def drawRightMenu(screen):
     # Moves Log Text
@@ -68,12 +74,13 @@ def drawPawnPromotionOptions(screen, color):
             idx += 1
     # print("inside drawPawn...Options")
 
-def getPawnPromotionOption(color):
+
+def getPawnPromotionOption(screen, color):
     selectedPieceRow, selectedPieceColumn = 0, 0
     piecesPositions = {(0, 0): 'Q', (0, 1): 'R', (1, 0): 'N', (1, 1): 'B'}
     heightOffset = BOARD_HEIGHT - (2 * SQUARE_SIZE) if color == 'w' else 0
 
-    # drawPawnPromotionOptions(screen, color)
+    drawPawnPromotionOptions(screen, color)
     running = True
     while running:
         for event in pg.event.get():
@@ -89,24 +96,80 @@ def getPawnPromotionOption(color):
                 running = not running
                 break
 
-    # Revert back to the normal state
-    # drawLeftMenu(screen)
     return color + piecesPositions[(selectedPieceRow, selectedPieceColumn)]
 
 
+def highlightValidSquares(screen, gameState, validMoves, squareSelected):
+    # Highlighting the last played move
+    if len(gameState.moveLog) > 0:
+        lastPlayedMove = gameState.moveLog[-1]
+        surface = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
+        # Defining the opacity of the highlighting
+        surface.set_alpha(100)
+        surface.fill(pg.Color(RED_COLOR))
+        screen.blit(surface, ((lastPlayedMove.endingColumn * SQUARE_SIZE) + FULL_LEFT_PART_WIDTH, lastPlayedMove.endingRow * SQUARE_SIZE))
+
+    # Highlighting the selected square and all the valid squares that the player can move his piece to
+    if squareSelected != ():
+        selectedRow, selectedCol = squareSelected
+        print(squareSelected)
+        if (gameState.board[selectedRow][selectedCol][0] == ('w' if gameState.whiteToMove else 'b')):
+            # Highlighting the selected square
+            surface = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
+            surface.set_alpha(100)
+            surface.fill(pg.Color(TURQUOISE_COLOR))
+            screen.blit(surface, ((selectedCol * SQUARE_SIZE) + FULL_LEFT_PART_WIDTH, selectedRow * SQUARE_SIZE))
+
+            # Highlighting the valid squares
+            surface.fill((pg.Color(DARK_WASHED_RED_COLOR)))
+            selectedPieceValidMoves = [move for move in validMoves if (move.startingColumn == selectedCol) and (move.startingRow == selectedRow)]
+            for move in selectedPieceValidMoves:
+                screen.blit(surface, ((move.endingColumn * SQUARE_SIZE) + FULL_LEFT_PART_WIDTH, move.endingRow * SQUARE_SIZE))
+
+
+def displayMoveLog(screen, gameState, font):
+    moveLogRect = pg.Rect(BOARD_WIDTH + FULL_LEFT_PART_WIDTH, SQUARE_SIZE, MOVE_LOG_DISPLAY_WIDTH, BOARD_HEIGHT - SQUARE_SIZE)
+    move_log = gameState.moveLog
+    move_texts = []
+    for i in range(0, len(move_log), 2):
+        move_string = str(i // 2 + 1) + '. ' + str(move_log[i]) + " "
+        if i + 1 < len(move_log):
+            move_string += "|| " + str(move_log[i + 1]) + "  "
+        move_texts.append(move_string)
+
+    moves_per_row = 1
+    padding = 5
+    line_spacing = 2
+    text_y = padding
+    for i in range(0, len(move_texts), moves_per_row):
+        text = ""
+        for j in range(moves_per_row):
+            if i + j < len(move_texts):
+                text += move_texts[i + j]
+
+        text_object = font.render(text, True, pg.Color(WHITE_COLOR))
+        text_location = moveLogRect.move(padding, text_y)
+        screen.blit(text_object, text_location)
+        text_y += text_object.get_height() + line_spacing
+
 # Draw the current game state.
-def drawGameState(screen, gameState, color='', isPawnPromotion=False):
+def drawGameState(screen, gameState, validMoves, squareSelected, font, color='', isPawnPromotion=False):
     drawBoard(screen)
+    highlightValidSquares(screen, gameState, validMoves, squareSelected)
     drawPieces(screen, gameState.board)
-    drawLeftMenu(screen)
     drawRightMenu(screen)
+    displayMoveLog(screen, gameState, font)
+
 
     if isPawnPromotion:
-        toPromoteToPiece = getPawnPromotionOption(color)
+        drawLeftMenu(screen, pawnPromotionHappening=True, promotingPlayer=color)
+        toPromoteToPiece = getPawnPromotionOption(screen, color)
         while toPromoteToPiece is None:
             drawPawnPromotionOptions(screen, color)
             toPromoteToPiece = getPawnPromotionOption(screen, color)
         return toPromoteToPiece  # Return the selected piece
+    else:
+        drawLeftMenu(screen)
 
     return None  # Return None if no selection is made yet
 
@@ -120,6 +183,7 @@ def main():
     pg.display.set_caption("My Chess Engine")
     clock = pg.time.Clock()
     screen.fill("black")
+    MOVE_LOG_FONT = pg.font.SysFont("Arial", 25, False, False)
     # Loading the pieces' images
     loadImages()
     gameState = GameState()
@@ -166,11 +230,11 @@ def main():
                     moveMade = True
 
         if not pawnPromotionMade:
-            drawGameState(screen, gameState)
+            drawGameState(screen, gameState, validMoves, squareSelected, MOVE_LOG_FONT)
         else:
             # Draw and wait for a valid selection
-            toPromoteToPiece = drawGameState(screen, gameState, pawnPromotionColor, True)
-            # drawPawnPromotionOptions(screen, pawnPromotionColor)
+            toPromoteToPiece = drawGameState(screen, gameState, validMoves, squareSelected, MOVE_LOG_FONT, color=pawnPromotionColor, isPawnPromotion=True)
+            drawPawnPromotionOptions(screen, pawnPromotionColor)
 
             # If a valid selection is made, make the move
             if toPromoteToPiece is not None:
@@ -184,6 +248,7 @@ def main():
             validMoves = gameState.getValidMoves()
             moveMade = False
 
+        # drawPawnPromotionOptions(screen, pawnPromotionColor)
         clock.tick(MAX_FPS)
         pg.display.flip()
 
