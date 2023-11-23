@@ -38,7 +38,7 @@ def drawLeftMenu(screen, pawnPromotionHappening = False, promotingPlayer = ''):
         if promotingPlayer == 'w':
             leftMenuDimensions = (0, 0, LEFT_MENU_WIDTH, BOARD_HEIGHT - (2 * SQUARE_SIZE))
         else:
-            leftMenuDimensions = (0, (2 * SQUARE_SIZE), LEFT_MENU_WIDTH, BOARD_HEIGHT)
+            leftMenuDimensions = (0, (2 * SQUARE_SIZE) + BORDER_WIDTH, LEFT_MENU_WIDTH, BOARD_HEIGHT - ((2 * SQUARE_SIZE) + BORDER_WIDTH))
 
     # Drawing the Menu
     pg.draw.rect(screen, pg.Color(TEAL_COLOR), leftMenuDimensions)
@@ -137,13 +137,12 @@ def highlightValidSquares(screen, gameState, validMoves, squareSelected):
         surface = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
         # Defining the opacity of the highlighting
         surface.set_alpha(100)
-        surface.fill(pg.Color(RED_COLOR))
+        surface.fill(pg.Color(MEDIUM_BLUE_COLOR))
         screen.blit(surface, ((lastPlayedMove.endingColumn * SQUARE_SIZE) + FULL_LEFT_PART_WIDTH, lastPlayedMove.endingRow * SQUARE_SIZE))
 
     # Highlighting the selected square and all the valid squares that the player can move his piece to
     if squareSelected != ():
         selectedRow, selectedCol = squareSelected
-        print(squareSelected)
         if (gameState.board[selectedRow][selectedCol][0] == ('w' if gameState.whiteToMove else 'b')):
             # Highlighting the selected square
             surface = pg.Surface((SQUARE_SIZE, SQUARE_SIZE))
@@ -191,12 +190,10 @@ def drawGameState(screen, gameState, validMoves, squareSelected, font, color='',
     drawRightMenu(screen)
     displayMoveLog(screen, gameState, font)
 
-
     if isPawnPromotion:
         drawLeftMenu(screen, pawnPromotionHappening=True, promotingPlayer=color)
         toPromoteToPiece = getPawnPromotionOption(screen, color)
         while toPromoteToPiece is None:
-            drawPawnPromotionOptions(screen, color)
             toPromoteToPiece = getPawnPromotionOption(screen, color)
         return toPromoteToPiece  # Return the selected piece
     else:
@@ -262,10 +259,10 @@ def main():
 
         if not pawnPromotionMade:
             drawGameState(screen, gameState, validMoves, squareSelected, MOVE_LOG_FONT)
+            drawPawnPromotionOptions(screen)
         else:
             # Draw and wait for a valid selection
             toPromoteToPiece = drawGameState(screen, gameState, validMoves, squareSelected, MOVE_LOG_FONT, color=pawnPromotionColor, isPawnPromotion=True)
-            drawPawnPromotionOptions(screen, pawnPromotionColor)
 
             # If a valid selection is made, make the move
             if toPromoteToPiece is not None:
